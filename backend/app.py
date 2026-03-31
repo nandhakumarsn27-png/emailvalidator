@@ -1,32 +1,34 @@
-from flask import Flask, request, jsonify
-import re
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+import re
 
 app = Flask(__name__)
 CORS(app)
 
-# Email regex
-EMAIL_REGEX = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+EMAIL_REGEX = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
 
-def validate_email(email):
-    if re.match(EMAIL_REGEX, email):
-        return "Valid"
-    return "Invalid"
+def is_valid_email(email):
+    return re.match(EMAIL_REGEX, email) is not None
 
-@app.route('/validate', methods=['POST'])
-def validate():
-    data = request.get_json()
+# 👉 Serve frontend
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# 👉 API
+@app.route("/bulk-validate", methods=["POST"])
+def bulk_validate():
+    data = request.json
     emails = data.get("emails", [])
 
     results = []
     for email in emails:
-        status = validate_email(email.strip())
         results.append({
             "email": email,
-            "status": status
+            "valid": is_valid_email(email)
         })
 
-    return jsonify({"results": results})
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(debug=True)
