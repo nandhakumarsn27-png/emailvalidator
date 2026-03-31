@@ -1,7 +1,7 @@
 async function validateEmails() {
     const emails = document.getElementById("emails").value.split("\n");
 
-    const response = await fetch("http://127.0.0.1:5000/validate", {
+    const response = await fetch("/bulk-validate", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
