@@ -1,23 +1,39 @@
 async function validateEmails() {
-    const emails = document.getElementById("emails").value.split("\n");
+    const input = document.getElementById("emails").value;
 
-    const response = await fetch("/bulk-validate", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ emails })
-    });
+    // split + clean emails
+    const emails = input
+        .split(/[\n,]+/)
+        .map(e => e.trim())
+        .filter(e => e);
 
-    const data = await response.json();
+    try {
+        const response = await fetch("/bulk-validate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ emails })
+        });
 
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "";
+        if (!response.ok) {
+            throw new Error("API error");
+        }
 
-    data.results.forEach(item => {
-        const p = document.createElement("p");
-        p.textContent = `${item.email} - ${item.status}`;
-        p.className = item.status === "Valid" ? "valid" : "invalid";
-        resultsDiv.appendChild(p);
-    });
+        const data = await response.json();
+
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
+
+        data.forEach(item => {
+            const p = document.createElement("p");
+            p.textContent = `${item.email} - ${item.valid ? "Valid" : "Invalid"}`;
+            p.className = item.valid ? "valid" : "invalid";
+            resultsDiv.appendChild(p);
+        });
+
+    } catch (error) {
+        console.error(error);
+        alert("Something went wrong!");
+    }
 }
